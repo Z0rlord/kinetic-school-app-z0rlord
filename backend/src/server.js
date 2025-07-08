@@ -78,8 +78,8 @@ app.use('/api/profiles', require('./routes/profiles'));
 app.use('/api/goals', require('./routes/goals'));
 app.use('/api/skills', require('./routes/skills'));
 app.use('/api/interests', require('./routes/interests'));
+app.use('/api/files', require('./routes/files'));
 // app.use('/api/surveys', require('./routes/surveys'));
-// app.use('/api/files', require('./routes/files'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
