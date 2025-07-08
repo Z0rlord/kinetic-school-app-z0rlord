@@ -115,3 +115,10 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Homebrew
+Brewfile.lock.json
+.brew/
+
+# Local development
+.env.local

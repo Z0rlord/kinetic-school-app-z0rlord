@@ -79,7 +79,7 @@ CREATE TABLE skills (
     skill_name VARCHAR(200) NOT NULL,
     category ENUM('technical', 'soft', 'language', 'tools_software', 'other') NOT NULL,
     proficiency_level ENUM('beginner', 'intermediate', 'advanced', 'expert') NOT NULL,
-    proficiency_score INT CHECK (proficiency_score >= 1 AND proficiency_score <= 5) NULL,
+    proficiency_score INT NULL CHECK (proficiency_score >= 1 AND proficiency_score <= 5),
     is_verified BOOLEAN DEFAULT FALSE,
     verified_by INT NULL,
     date_acquired DATE NULL,
