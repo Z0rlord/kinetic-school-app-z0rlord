@@ -74,7 +74,10 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
-// app.use('/api/profiles', require('./routes/profiles'));
+app.use('/api/profiles', require('./routes/profiles'));
+app.use('/api/goals', require('./routes/goals'));
+app.use('/api/skills', require('./routes/skills'));
+app.use('/api/interests', require('./routes/interests'));
 // app.use('/api/surveys', require('./routes/surveys'));
 // app.use('/api/files', require('./routes/files'));
 

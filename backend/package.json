@@ -15,7 +15,9 @@
     "db:clear": "node database/seed.js clear --confirm",
     "db:reset": "node database/seed.js reset --confirm",
     "db:setup": "npm run db:migrate && npm run db:seed",
-    "test:auth": "node test-auth.js"
+    "test:auth": "node test-auth.js",
+    "test:api": "node test-api.js",
+    "test:all": "npm run test:auth && npm run test:api"
   },
   "keywords": [
     "education",
