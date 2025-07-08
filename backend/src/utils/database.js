@@ -1,27 +1,54 @@
 const mysql = require('mysql2/promise');
+const { vaultClient } = require('./vault');
 require('dotenv').config();
 
-// Database configuration
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'student_profile_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  acquireTimeout: 60000,
-  timeout: 60000
-};
+let pool = null;
 
-// Create connection pool
-const pool = mysql.createPool(dbConfig);
+// Initialize database connection with Vault support
+async function initializeDatabase() {
+  try {
+    // Get database configuration (with Vault fallback)
+    const dbConfig = await vaultClient.getDatabaseConfig();
+
+    const poolConfig = {
+      host: dbConfig.host || 'localhost',
+      port: parseInt(dbConfig.port) || 3306,
+      user: dbConfig.user || 'root',
+      password: dbConfig.password || '',
+      database: dbConfig.database || 'student_profile_db',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      acquireTimeout: 60000,
+      timeout: 60000,
+      charset: 'utf8mb4'
+    };
+
+    // Create connection pool
+    pool = mysql.createPool(poolConfig);
+
+    console.log('🔗 Database pool initialized');
+    return pool;
+
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    throw error;
+  }
+}
+
+// Get or create pool
+async function getPool() {
+  if (!pool) {
+    await initializeDatabase();
+  }
+  return pool;
+}
 
 // Test database connection
 async function testConnection() {
   try {
-    const connection = await pool.getConnection();
+    const currentPool = await getPool();
+    const connection = await currentPool.getConnection();
     console.log('✅ Database connected successfully');
     connection.release();
     return true;
@@ -34,7 +61,8 @@ async function testConnection() {
 // Execute query with error handling
 async function executeQuery(query, params = []) {
   try {
-    const [results] = await pool.execute(query, params);
+    const currentPool = await getPool();
+    const [results] = await currentPool.execute(query, params);
     return results;
   } catch (error) {
     console.error('Database query error:', error);
@@ -94,17 +122,18 @@ async function deleteRecord(query, params = []) {
 
 // Transaction helper
 async function executeTransaction(queries) {
-  const connection = await pool.getConnection();
-  
+  const currentPool = await getPool();
+  const connection = await currentPool.getConnection();
+
   try {
     await connection.beginTransaction();
-    
+
     const results = [];
     for (const { query, params } of queries) {
       const [result] = await connection.execute(query, params || []);
       results.push(result);
     }
-    
+
     await connection.commit();
     return results;
   } catch (error) {
@@ -126,7 +155,8 @@ async function closePool() {
 }
 
 module.exports = {
-  pool,
+  initializeDatabase,
+  getPool,
   testConnection,
   executeQuery,
   findOne,

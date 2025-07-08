@@ -7,9 +7,20 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "db:migrate": "node database/migrate.js migrate",
+    "db:status": "node database/migrate.js status",
+    "db:rollback": "node database/migrate.js rollback",
+    "db:seed": "node database/seed.js seed",
+    "db:clear": "node database/seed.js clear --confirm",
+    "db:reset": "node database/seed.js reset --confirm",
+    "db:setup": "npm run db:migrate && npm run db:seed"
   },
-  "keywords": ["education", "student-profiles", "goal-tracking"],
+  "keywords": [
+    "education",
+    "student-profiles",
+    "goal-tracking"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
