@@ -6,6 +6,18 @@ A comprehensive web application that helps educators track and understand their 
 
 This project follows a **simplicity-first approach** as outlined in CLAUDE.md, focusing on core functionality with minimal complexity.
 
+## 🔒 Security Notice
+
+This application has undergone a comprehensive security audit. See `SECURITY-AUDIT.md` for details. Key security features:
+- ✅ Strong authentication with bcrypt password hashing
+- ✅ SQL injection prevention with parameterized queries
+- ✅ XSS protection and input sanitization
+- ✅ Rate limiting and CSRF protection
+- ✅ Secure session management
+- ✅ Content Security Policy headers
+
+**For security vulnerabilities, please see our [security policy](CONTRIBUTING.md#-security-first).**
+
 ## Quick Start
 
 ### Prerequisites

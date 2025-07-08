@@ -1,0 +1,21 @@
+# Global code owners - require review for all changes
+* @Z0rlord
+
+# Critical security files require extra scrutiny
+backend/src/middleware/auth.js @Z0rlord
+backend/src/middleware/security.js @Z0rlord
+backend/src/utils/database.js @Z0rlord
+backend/.env.example @Z0rlord
+SECURITY-AUDIT.md @Z0rlord
+
+# Database and migration files
+backend/database/ @Z0rlord
+
+# Configuration files
+backend/src/server.js @Z0rlord
+frontend/vite.config.js @Z0rlord
+package*.json @Z0rlord
+
+# Documentation that affects security
+README.md @Z0rlord
+docs/ @Z0rlord
