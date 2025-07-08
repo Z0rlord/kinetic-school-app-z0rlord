@@ -3,6 +3,8 @@ const session = require('express-session');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { getConfig } = require('./utils/vault');
+const { initializeDatabase } = require('./utils/database');
 require('dotenv').config();
 
 const app = express();
@@ -29,30 +31,49 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+// Initialize application
+async function initializeApp() {
+  try {
+    // Initialize database
+    await initializeDatabase();
+
+    // Get configuration (with Vault support)
+    const config = await getConfig();
+
+    // Session configuration
+    app.use(session({
+      secret: config.session.secret || 'your-secret-key-change-in-production',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      }
+    }));
+
+    console.log('✅ Application initialized successfully');
+    console.log(`🔐 Vault enabled: ${config.vault.enabled}`);
+    console.log(`🔗 Vault healthy: ${config.vault.healthy}`);
+
+  } catch (error) {
+    console.error('❌ Application initialization failed:', error);
+    process.exit(1);
   }
-}));
+}
 
 // Basic health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Routes will be added here
-// app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/users', require('./routes/users'));
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
 // app.use('/api/profiles', require('./routes/profiles'));
 // app.use('/api/surveys', require('./routes/surveys'));
 // app.use('/api/files', require('./routes/files'));
@@ -60,7 +81,7 @@ app.get('/api/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Something went wrong!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
@@ -72,9 +93,33 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+async function startServer() {
+  await initializeApp();
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📡 API endpoints available at http://localhost:${PORT}/api`);
+  });
+}
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  process.exit(0);
 });
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down gracefully');
+  process.exit(0);
+});
+
+// Start the server
+if (require.main === module) {
+  startServer().catch(error => {
+    console.error('💥 Failed to start server:', error);
+    process.exit(1);
+  });
+}
 
 module.exports = app;
